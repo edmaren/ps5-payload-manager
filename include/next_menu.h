@@ -12,6 +12,15 @@
 #define ROUTE_DELETE "/manage:delete"
 #define ROUTE_LOAD_PAYLOAD "/loadpayload:"
 #define ROUTE_SHUTDOWN "/shutdown"
+#define ROUTE_LOG "/log"
+#define ROUTE_VERSION "/version"
+#define ROUTE_GETIP "/getip"
+#define ROUTE_CONFIG "/get_config"
+
+#define MENU_VERSION "1.0.1-native"
+
+/* Logging */
+void nm_log(const char *fmt, ...);
 
 /* Paths */
 #define BASE_DATA_DIR "/data/next_menu"

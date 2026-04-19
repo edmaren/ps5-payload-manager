@@ -34,7 +34,7 @@ size_t payload_mgr_list_json(char *json_buf, size_t buf_size) {
         DIR *dir = opendir(dir_path);
         if (!dir) continue;
 
-        printf("[NextMenu] Scanning: %s\n", dir_path);
+        nm_log("[NextMenu] Scanning: %s\n", dir_path);
 
         struct dirent *entry;
         while ((entry = readdir(dir)) != NULL) {
@@ -48,7 +48,7 @@ size_t payload_mgr_list_json(char *json_buf, size_t buf_size) {
 
             if (S_ISREG(st.st_mode)) {
                 if (is_supported_extension(entry->d_name)) {
-                    printf("[NextMenu] Found payload: %s\n", full_path);
+                    nm_log("[NextMenu] Found payload: %s\n", full_path);
                     if (!first) {
                         pos += snprintf(json_buf + pos, buf_size - pos, ",");
                     }

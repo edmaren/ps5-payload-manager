@@ -15,10 +15,43 @@
 #include <sys/stat.h>
 #include <microhttpd.h>
 
+#include <stdarg.h>
 #include "next_menu.h"
 #include "assets_index_html.h"
 #include "payload_mgr.h"
 #include "ps5_launcher.h"
+
+#define MAX_LOG_LINES 100
+#define MAX_LOG_LINE_LEN 256
+
+static char log_buffer[MAX_LOG_LINES][MAX_LOG_LINE_LEN];
+static int log_head = 0;
+static int log_count = 0;
+
+void nm_log(const char *fmt, ...) {
+    char line[MAX_LOG_LINE_LEN];
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(line, sizeof(line), fmt, args);
+    va_end(args);
+
+    /* Print to stdout */
+    printf("%s", line);
+
+    /* Remove trailing newline for internal storage if present */
+    size_t len = strlen(line);
+    while (len > 0 && (line[len-1] == '\n' || line[len-1] == '\r')) {
+        line[len-1] = '\0';
+        len--;
+    }
+
+    if (len == 0) return;
+
+    /* Add to circular buffer */
+    strncpy(log_buffer[log_head], line, MAX_LOG_LINE_LEN);
+    log_head = (log_head + 1) % MAX_LOG_LINES;
+    if (log_count < MAX_LOG_LINES) log_count++;
+}
 
 #define DEFAULT_PORT MENU_PORT
 
@@ -68,13 +101,13 @@ static enum MHD_Result on_request(void *cls, struct MHD_Connection *conn,
                 
                 status->fp = fopen(path, "wb");
                 if (!status->fp) {
-                    printf("[NextMenu] !!! FAILED to open file: %s\n", path);
+                    nm_log("[NextMenu] !!! FAILED to open file: %s\n", path);
                     status->error = 1;
                 } else {
-                    printf("[NextMenu] Starting upload to: %s\n", path);
+                    nm_log("[NextMenu] Starting upload to: %s\n", path);
                 }
             } else {
-                printf("[NextMenu] !!! Upload failed: Missing filename parameter\n");
+                nm_log("[NextMenu] !!! Upload failed: Missing filename parameter\n");
                 status->error = 1;
             }
             *con_cls = status;
@@ -92,7 +125,7 @@ static enum MHD_Result on_request(void *cls, struct MHD_Connection *conn,
             if (status->fp && !status->error) {
                 size_t written = fwrite(upload_data, 1, *upload_data_size, status->fp);
                 if (written != *upload_data_size) {
-                    printf("[NextMenu] !!! Write error: expected %zu, got %zu\n", *upload_data_size, written);
+                    nm_log("[NextMenu] !!! Write error: expected %zu, got %zu\n", *upload_data_size, written);
                     status->error = 1;
                 }
                 status->total_size += written;
@@ -105,7 +138,7 @@ static enum MHD_Result on_request(void *cls, struct MHD_Connection *conn,
                 fflush(status->fp);
                 fclose(status->fp);
             }
-            printf("[NextMenu] Upload finished. Total bytes: %zu, Error: %d\n", status->total_size, status->error);
+            nm_log("[NextMenu] Upload finished. Total bytes: %zu, Error: %d\n", status->total_size, status->error);
             
             int err = status->error;
             free(status);
@@ -120,7 +153,10 @@ static enum MHD_Result on_request(void *cls, struct MHD_Connection *conn,
         }
     }
 
-    printf("[NextMenu] Request: %s %s\n", method, url);
+    /* Only log significant requests, not pollers like /log */
+    if (strcmp(url, ROUTE_LOG) != 0 && strcmp(url, ROUTE_INDEX) != 0 && strcmp(url, ROUTE_INDEX_HTML) != 0) {
+        nm_log("[NextMenu] Request: %s %s\n", method, url);
+    }
 
     struct MHD_Response *resp = NULL;
     enum MHD_Result ret;
@@ -155,7 +191,7 @@ static enum MHD_Result on_request(void *cls, struct MHD_Connection *conn,
             } else {
                 snprintf(path, sizeof(path), "%s/%s", BASE_DATA_DIR, filename);
                 if (remove(path) == 0) {
-                    printf("[NextMenu] Deleted payload: %s\n", path);
+                    nm_log("[NextMenu] Deleted payload: %s\n", path);
                     resp = MHD_create_response_from_buffer(strlen(MSG_OK), (void *)MSG_OK, MHD_RESPMEM_PERSISTENT);
                 } else {
                     const char *err = "Failed to delete file\n";
@@ -169,9 +205,33 @@ static enum MHD_Result on_request(void *cls, struct MHD_Connection *conn,
         MHD_add_response_header(resp, "Content-Type", "text/plain");
     } else if (strcmp(url, ROUTE_SHUTDOWN) == 0) {
         const char *msg = "Next Menu Core shutting down...\n";
+        nm_log("[NextMenu] %s", msg);
         resp = MHD_create_response_from_buffer(strlen(msg), (void *)msg, MHD_RESPMEM_PERSISTENT);
         MHD_add_response_header(resp, "Content-Type", "text/plain");
         keep_running = 0; /* Signal main loop to exit */
+    } else if (strcmp(url, ROUTE_LOG) == 0) {
+        size_t pos = 0;
+        pos += snprintf(response_buffer + pos, sizeof(response_buffer) - pos, "{\"logs\":[");
+        for (int i = 0; i < log_count; i++) {
+            int idx = (log_head - log_count + i + MAX_LOG_LINES) % MAX_LOG_LINES;
+            /* Escape quotes in log lines for simple JSON safety */
+            pos += snprintf(response_buffer + pos, sizeof(response_buffer) - pos, "\"%s\"%s", 
+                           log_buffer[idx], (i == log_count - 1) ? "" : ",");
+        }
+        pos += snprintf(response_buffer + pos, sizeof(response_buffer) - pos, "]}");
+        resp = MHD_create_response_from_buffer(pos, (void *)response_buffer, MHD_RESPMEM_MUST_COPY);
+        MHD_add_response_header(resp, "Content-Type", "application/json");
+    } else if (strcmp(url, ROUTE_VERSION) == 0) {
+        resp = MHD_create_response_from_buffer(strlen(MENU_VERSION), (void *)MENU_VERSION, MHD_RESPMEM_PERSISTENT);
+        MHD_add_response_header(resp, "Content-Type", "text/plain");
+    } else if (strcmp(url, ROUTE_GETIP) == 0) {
+        const char *ip = "192.168.1.133"; /* Placeholder */
+        resp = MHD_create_response_from_buffer(strlen(ip), (void *)ip, MHD_RESPMEM_PERSISTENT);
+        MHD_add_response_header(resp, "Content-Type", "text/plain");
+    } else if (strcmp(url, ROUTE_CONFIG) == 0) {
+        const char *config = "{\"AUTOLOAD_ENABLED\":false}";
+        resp = MHD_create_response_from_buffer(strlen(config), (void *)config, MHD_RESPMEM_PERSISTENT);
+        MHD_add_response_header(resp, "Content-Type", "application/json");
     } else {
         /* Default: 404 for now */
         const char *not_found = "404 Not Found\n";
@@ -193,8 +253,7 @@ static enum MHD_Result on_request(void *cls, struct MHD_Connection *conn,
 int main(int argc, char *argv[]) {
     struct MHD_Daemon *daemon;
     unsigned short port = DEFAULT_PORT;
-
-    printf("[NextMenu] Starting Native Core on port %d...\n", port);
+    nm_log("[NextMenu] Starting Native Core v%s on port %d...\n", MENU_VERSION, port);
 
     /* Ignore SIGPIPE to prevent crashes on socket disconnects */
     signal(SIGPIPE, SIG_IGN);
@@ -205,18 +264,18 @@ int main(int argc, char *argv[]) {
                              MHD_OPTION_END);
 
     if (NULL == daemon) {
-        printf("[NextMenu] Failed to start HTTP daemon!\n");
+        nm_log("[NextMenu] Failed to start HTTP daemon!\n");
         return 1;
     }
 
-    printf("[NextMenu] Server is running. Visit /shutdown to exit.\n");
+    nm_log("[NextMenu] Server is running. Visit /shutdown to exit.\n");
 
     /* Keep the daemon running until keep_running is 0 */
     while (keep_running) {
         usleep(100000); /* 100ms sleep */
     }
 
-    printf("[NextMenu] Shutting down...\n");
+    nm_log("[NextMenu] Shutting down...\n");
     MHD_stop_daemon(daemon);
     
     /* Give some time for sockets to close before process exits */

@@ -770,9 +770,7 @@ function App() {
       if (logData?.logs) setLogs(logData.logs)
     }, 1500)
 
-    const kaInterval = setInterval(() => fetch('/keepalive').catch(() => {}), 2000)
-
-    return () => { clearInterval(logInterval); clearInterval(kaInterval); }
+    return () => { clearInterval(logInterval); }
   }, [])
 
   useEffect(() => { logEndRef.current?.scrollIntoView({ behavior: 'auto' }) }, [logs])
