@@ -6,7 +6,16 @@ import { viteSingleFile } from 'vite-plugin-singlefile'
 export default defineConfig({
   plugins: [react(), viteSingleFile()],
   build: {
-    minify: true,
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+      format: {
+        comments: false,
+      },
+    },
     cssCodeSplit: false,
     assetsInlineLimit: 100000, // Inline all assets
   },
