@@ -72,8 +72,8 @@ const AutoloadView = ({ payloads, config, onSaveConfig, onToast }) => {
   }
 
   const renderAvailable = () => (
-    <div className="space-y-8 animate-fade-in">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 animate-fade-in flex flex-col h-full min-h-0">
+      <div className="flex items-center justify-between shrink-0">
         <div className="flex items-center space-x-4">
           {subView === 'add' && (
             <button onClick={() => setSubView('list')} className="p-2 bg-white/5 rounded-xl border border-white/10 md:hidden">
@@ -91,38 +91,40 @@ const AutoloadView = ({ payloads, config, onSaveConfig, onToast }) => {
           </button>
         )}
       </div>
-      <div className="grid grid-cols-1 gap-4">
-        {availablePayloads.map(p => {
-          const isKstuff = p.toLowerCase().includes('kstuff');
-          const hasKstuff = autoloadList.some(x => x.toLowerCase().includes('kstuff'));
-          const isBlocked = isKstuff && hasKstuff;
+      <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar min-h-0">
+        <div className="grid grid-cols-1 gap-4">
+          {availablePayloads.map(p => {
+            const isKstuff = p.toLowerCase().includes('kstuff');
+            const hasKstuff = autoloadList.some(x => x.toLowerCase().includes('kstuff'));
+            const isBlocked = isKstuff && hasKstuff;
 
-          return (
+            return (
+              <button
+                key={p}
+                onClick={() => !isBlocked && addPayload(p)}
+                disabled={isBlocked}
+                className={cn(
+                  "flex items-center justify-between p-6 glass-card rounded-2xl border-white/20 transition-all text-left",
+                  isBlocked ? "opacity-40 cursor-not-allowed" : "bg-white/[0.03] hover:border-ps-blue group"
+                )}
+              >
+                <PayloadName path={p} className={cn("text-xl", isBlocked ? "text-zinc-500" : "text-white")} />
+                <ArrowRight className={cn("w-6 h-6 transition-all", isBlocked ? "text-zinc-800" : "text-zinc-500 group-hover:text-ps-blue group-hover:translate-x-2")} />
+              </button>
+            )
+          })}
+          <div className="pt-4 border-t border-white/10 mt-4">
             <button
-              key={p}
-              onClick={() => !isBlocked && addPayload(p)}
-              disabled={isBlocked}
-              className={cn(
-                "flex items-center justify-between p-6 glass-card rounded-2xl border-white/20 transition-all text-left",
-                isBlocked ? "opacity-40 cursor-not-allowed" : "bg-white/[0.03] hover:border-ps-blue group"
-              )}
+              onClick={() => setShowDelayModal(true)}
+              className="w-full flex items-center justify-between p-6 bg-white/[0.03] rounded-2xl border border-dashed border-white/20 hover:border-ps-blue group transition-all"
             >
-              <PayloadName path={p} className={cn("text-xl", isBlocked ? "text-zinc-500" : "text-white")} />
-              <ArrowRight className={cn("w-6 h-6 transition-all", isBlocked ? "text-zinc-800" : "text-zinc-500 group-hover:text-ps-blue group-hover:translate-x-2")} />
+              <div className="flex items-center space-x-4">
+                <Zap className="w-6 h-6 text-ps-blue" />
+                <span className="font-bold text-white uppercase tracking-tight text-xl">Add Delay</span>
+              </div>
+              <ArrowRight className="w-6 h-6 text-zinc-500 group-hover:text-ps-blue group-hover:translate-x-2 transition-all" />
             </button>
-          )
-        })}
-        <div className="pt-4 border-t border-white/10 mt-4">
-          <button
-            onClick={() => setShowDelayModal(true)}
-            className="w-full flex items-center justify-between p-6 bg-white/[0.03] rounded-2xl border border-dashed border-white/20 hover:border-ps-blue group transition-all"
-          >
-            <div className="flex items-center space-x-4">
-              <Zap className="w-6 h-6 text-ps-blue" />
-              <span className="font-bold text-white uppercase tracking-tight text-xl">Add Delay</span>
-            </div>
-            <ArrowRight className="w-6 h-6 text-zinc-500 group-hover:text-ps-blue group-hover:translate-x-2 transition-all" />
-          </button>
+          </div>
         </div>
       </div>
     </div>
@@ -130,7 +132,7 @@ const AutoloadView = ({ payloads, config, onSaveConfig, onToast }) => {
 
   const renderSequence = () => (
     <div className="space-y-8 animate-fade-in flex flex-col h-full min-h-0">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between shrink-0">
         <h2 className="text-4xl font-extrabold text-white tracking-tight">
           Autoload <span className="text-ps-blue">Sequence</span>
         </h2>
@@ -146,7 +148,7 @@ const AutoloadView = ({ payloads, config, onSaveConfig, onToast }) => {
         </button>
       </div>
 
-      <div className="glass-panel p-6 rounded-ps-3xl border-white/10 flex-1 overflow-hidden flex flex-col min-h-[400px]">
+      <div className="glass-panel p-6 rounded-ps-3xl border-white/10 flex-1 overflow-hidden flex flex-col min-h-0">
         <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-2 mb-6">
           {autoloadList.map((p, i) => (
             <div key={`${p}-${i}`} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10 animate-in slide-in-from-left duration-200">
@@ -217,19 +219,16 @@ const AutoloadView = ({ payloads, config, onSaveConfig, onToast }) => {
   }
 
   return (
-    <div className={cn(
-      "overflow-hidden md:overflow-visible animate-fade-in",
-      isPS5 ? "h-full" : "h-[calc(100vh-250px)] md:h-auto"
-    )}>
+    <div className="h-full flex flex-col animate-fade-in min-h-0">
       <div className={cn(
-        "gap-12 items-start h-full",
+        "gap-12 h-full min-h-0",
         isPS5 ? "grid grid-cols-2" : "hidden md:grid md:grid-cols-2"
       )}>
         {renderAvailable()}
         {renderSequence()}
       </div>
       <div className={cn(
-        "h-full flex flex-col",
+        "h-full flex flex-col min-h-0",
         isPS5 ? "hidden" : "md:hidden"
       )}>
         {subView === 'list' ? renderSequence() : renderAvailable()}
