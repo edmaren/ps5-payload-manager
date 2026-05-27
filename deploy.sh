@@ -13,17 +13,8 @@ ELF="pldmgr.elf"
 
 echo "--- Deploying Payload Manager to $PS5_IP ---"
 
-# 1. Shutdown current instance
-echo "[1/4] Requesting shutdown at http://$PS5_IP:$MENU_PORT/shutdown..."
-curl -s --connect-timeout 2 --max-time 4 http://$PS5_IP:$MENU_PORT/shutdown > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-    echo "      Shutdown command sent."
-else
-    echo "      Payload Manager was not active (skipped shutdown)."
-fi
-
-# 2. Build the React Frontend
-echo "[2/4] Building React Frontend..."
+# 1. Build the React Frontend
+echo "[1/3] Building React Frontend..."
 make frontend-build > /dev/null 2>&1
 if [ $? -ne 0 ]; then
     echo "      !!! Frontend build FAILED!"
@@ -31,9 +22,9 @@ if [ $? -ne 0 ]; then
 fi
 echo "      Frontend build successful."
 
-# 3. Build the native ELF via Docker
-echo "[3/4] Building native ELF via Docker..."
-docker run --rm -v "$(pwd)":/src -w /src ps5-payload-sdk make clean all > /dev/null 2>&1
+# 2. Build the native ELF via Docker
+echo "[2/3] Building native ELF via Docker..."
+docker run --rm -v "$(pwd)":/src -w /src ps5-payload-sdk-pldmgr make clean all > /dev/null 2>&1
 
 if [ $? -ne 0 ]; then
     echo "      !!! ELF build FAILED! Check Makefile or source errors."
@@ -41,9 +32,9 @@ if [ $? -ne 0 ]; then
 fi
 echo "      ELF build successful."
 
-# 4. Send to PS5
+# 3. Send to PS5
 if [ -f "$ELF" ]; then
-    echo "[4/4] Sending $ELF to $PS5_IP:$LOADER_PORT via socat..."
+    echo "[3/3] Sending $ELF to $PS5_IP:$LOADER_PORT via socat..."
     socat -u - TCP:$PS5_IP:$LOADER_PORT < "$ELF"
     if [ $? -eq 0 ]; then
         echo "--- Deployment Complete! ---"
