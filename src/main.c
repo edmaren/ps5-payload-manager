@@ -6,6 +6,7 @@
  */
 
 #include <arpa/inet.h>
+#include <ctype.h>
 #include <microhttpd.h>
 #include <signal.h>
 #include <stdint.h>
@@ -240,6 +241,16 @@ static int is_allowed_payload_path(const char *path) {
       return 1;
     }
   }
+
+  if (read_config_bool("SCAN_USB_PAYLOADS", 0)) {
+    size_t len = strlen(path);
+    if (len >= 10 && strncmp(path, "/mnt/usb", 8) == 0 &&
+        isdigit((unsigned char)path[8]) && path[9] == '/' &&
+        strchr(path + 10, '/') == NULL) {
+      return 1;
+    }
+  }
+
   return 0;
 }
 

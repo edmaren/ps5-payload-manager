@@ -831,7 +831,7 @@ static int is_allowed_usb_path(const char *path) {
         return -1;
     }
 
-    static int read_config_bool(const char *key, int default_val) {
+    int read_config_bool(const char *key, int default_val) {
         FILE *f = fopen(PLDMGR_CONFIG_PATH, "r");
         if (!f) return default_val;
         char line[256];

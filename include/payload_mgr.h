@@ -24,6 +24,7 @@ int payload_mgr_repository_push_json(const char *json, size_t len);
 int payload_mgr_usb_check(const char *usb_path, char *out_json, size_t out_size);
 int payload_mgr_usb_move(const char *usb_path, int overwrite, char *out_json, size_t out_size);
 
+int read_config_bool(const char *key, int default_val);
 int payload_mgr_check_self_update(char *out_path, size_t out_size);
 
 #endif
