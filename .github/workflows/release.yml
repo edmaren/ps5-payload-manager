@@ -1,0 +1,62 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Get version and short commit SHA
+        id: vars
+        run: |
+          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          VERSION=$(grep '#define MENU_VERSION' include/pldmgr.h | awk '{print $3}' | tr -d '"' | tr -d '\r')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build via Docker (build_release.sh)
+        run: bash ./build_release.sh
+
+      - name: Fix permissions for build artifacts
+        run: sudo chown -R $USER:$USER .
+
+      - name: Create Release Notes
+        run: |
+          VERSION="${{ steps.vars.outputs.version }}"
+          SHA="${{ steps.vars.outputs.sha_short }}"
+          cat <<INNER_EOF > release_notes.md
+          ## Payload Manager v$VERSION
+
+          | Payload | Description |
+          |---------|-------------|
+          | **[pldmgr_v${VERSION}.elf](https://github.com/${{ github.repository }}/releases/download/v${VERSION}-${SHA}/pldmgr_v${VERSION}.elf)** | **Recommended.** The standard payload manager payload. |
+          | **[pldmgr_elfldr_v${VERSION}.elf](https://github.com/${{ github.repository }}/releases/download/v${VERSION}-${SHA}/pldmgr_elfldr_v${VERSION}.elf)** | **Bundled Edition.** Starts both \`pldmgr\` and a localhost-only \`elfldr\` instance. Only intended to be used internally by autoloader projects. |
+          INNER_EOF
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.sha_short }}
+          name: Payload Manager v${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.sha_short }}
+          body_path: release_notes.md
+          files: |
+            pldmgr_v${{ steps.vars.outputs.version }}.elf
+            pldmgr_elfldr_v${{ steps.vars.outputs.version }}.elf
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
