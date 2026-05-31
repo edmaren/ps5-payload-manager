@@ -99,3 +99,46 @@ dist-clean: clean
 	rm -rf frontend/dist
 
 .PHONY: all clean frontend-build dist-clean
+
+# --- Bundle pldmgr + ps5-elfldr ---
+
+# Define the output for your bundle
+ELF_BUNDLE := pldmgr_elfldr.elf
+ELFLDR_DIR := ps5-elfldr
+
+# Target for bundle
+.PHONY: bundle
+bundle: $(ELF)
+	@echo "Creating bundled payload..."
+	@echo "1. Generating C header of PLDMGR..."
+	xxd -i $(ELF) > pldmgr_elf.c
+
+	@echo "2. Building socksrv.elf inside ps5-elfldr tools..."
+	$(CC) $(CFLAGS) -c $(ELFLDR_DIR)/socksrv.c -o socksrv.o
+	$(CC) $(CFLAGS) -c $(ELFLDR_DIR)/selfldr.c -o selfldr.o
+	$(CC) $(CFLAGS) -c $(ELFLDR_DIR)/elfldr.c -o elfldr_sub.o
+	$(CC) $(CFLAGS) -c $(ELFLDR_DIR)/pt.c -o pt.o
+	$(CC) $(CFLAGS) -c $(ELFLDR_DIR)/notify.c -o notify.o
+	$(CC) $(CFLAGS) -c $(ELFLDR_DIR)/uri.c -o uri.o
+	$(CC) $(CFLAGS) $(LDFLAGS) -o socksrv.elf socksrv.o selfldr.o elfldr_sub.o pt.o notify.o uri.o -lSceSsl -lSceHttp
+	$(STRIP) socksrv.elf
+
+	@echo "3. Generating C header of socksrv.elf..."
+	xxd -i socksrv.elf > socksrv_elf.c
+
+	@echo "4. Building bundled bootstrap..."
+	$(CC) $(CFLAGS) -I$(ELFLDR_DIR) -c bundle_bootstrap.c -o bundle_bootstrap.o
+	$(CC) $(CFLAGS) $(LDFLAGS) -o bootstrap.elf bundle_bootstrap.o elfldr_sub.o pt.o notify.o
+	$(STRIP) bootstrap.elf
+
+	@echo "5. Generating C header of bootstrap.elf..."
+	xxd -i bootstrap.elf > bootstrap_elf.c
+
+	@echo "6. Building final pldmgr_elfldr.elf wrapper..."
+	$(CC) $(CFLAGS) -I. -I$(ELFLDR_DIR) -c $(ELFLDR_DIR)/main.c -o final_main.o
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $(ELF_BUNDLE) final_main.o elfldr_sub.o pt.o notify.o
+	$(STRIP) $(ELF_BUNDLE)
+
+	@echo "Cleaning up intermediates..."
+	rm -f socksrv.o selfldr.o elfldr_sub.o pt.o notify.o uri.o socksrv.elf socksrv_elf.c pldmgr_elf.c bundle_bootstrap.o bootstrap.elf bootstrap_elf.c final_main.o
+	@echo "Success! Bundled payload created at: $(ELF_BUNDLE)"
