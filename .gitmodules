@@ -1,0 +1,3 @@
+[submodule "ps5-elfldr"]
+	path = ps5-elfldr
+	url = https://github.com/itsPLK/ps5-elfldr.git
