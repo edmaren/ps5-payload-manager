@@ -145,7 +145,7 @@ const AutoloadView = ({ payloads, config, onSaveConfig, onToast, onRedirect }) =
           <div className="pt-8 border-t border-white/5 mt-8 text-center space-y-4">
             <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest opacity-60">Missing a payload?</p>
             <button
-              onClick={() => onRedirect('storage')}
+              onClick={() => onRedirect('storage', 'usb-storage')}
               className="group flex flex-col items-center mx-auto space-y-3"
             >
               <div className="flex items-center space-x-3 text-ps-blue group-hover:text-white transition-colors">

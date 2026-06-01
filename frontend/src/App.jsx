@@ -542,7 +542,10 @@ function App() {
               config={config}
               onSaveConfig={handleSaveConfig}
               onToast={addToast}
-              onRedirect={(v) => setView(v)}
+              onRedirect={(v, target) => {
+                if (target) setStorageScrollTarget(target)
+                setView(v)
+              }}
             />
           )}
 
