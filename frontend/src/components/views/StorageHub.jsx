@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { CloudDownload, Upload, Package, Database, RefreshCw, Trash2, Loader2, AlertTriangle, HardDrive, Usb, ChevronDown, Globe } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
-import { cn, isPS5, isSystemPayload } from '../../utils/helpers'
+import { cn, isPS5, parsePayloadName } from '../../utils/helpers'
 import PayloadName from '../ui/PayloadName'
 
 const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onImportFromUsb, config, ip, scrollTarget, onClearScrollTarget }) => {
@@ -30,13 +30,14 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
 
       // Legacy single-source: auto-refresh if older than 24h
       if (!force && data?.last_update) {
+        // eslint-disable-next-line react-hooks/purity
         const now = Math.floor(Date.now() / 1000)
         if (now - Number(data.last_update) > 24 * 60 * 60) {
           await fetchRemote(true)
           return
         }
       }
-    } catch (e) {
+    } catch {
       setError(true)
     } finally {
       setLoading(false)
@@ -134,7 +135,7 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
           </span>
         </div>
 
-        <div className={cn("grid gap-4", isPS5 ? "grid-cols-2" : "grid-cols-1 md:grid-cols-2")}>
+        <div className={cn("grid gap-4", isPS5 ? "grid-cols-2" : "grid-cols-1 lg:grid-cols-2")}>
           {internalPayloads.length === 0 ? (
             <div className="col-span-full py-20 border-2 border-dashed border-white/5 rounded-ps-3xl flex flex-col items-center justify-center space-y-4 bg-white/[0.01]">
               <Package className="w-16 h-16 text-white/5" />
@@ -149,46 +150,43 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
                 ? enrichedSources.flatMap(s => s.payloads)
                 : remotePayloads
               const remoteMatch = allRemote.find(rp => rp.filename === fileName || rp.installedFilename === fileName)
+              const remoteVersion = remoteMatch?.filename ? parsePayloadName(remoteMatch.filename).version : null
               return (
-                <div key={path} className={cn(
-                  "group flex justify-between p-4 md:p-6 glass-card rounded-ps-2xl border-white/10 hover:border-ps-blue/30 gap-4 relative overflow-hidden",
-                  isPS5 ? "flex-row items-center" : "flex-col md:flex-row md:items-center"
-                )}>
-                  <div className="flex items-center space-x-4 md:space-x-6 min-w-0">
-                    <div className="p-3 md:p-4 bg-white/5 rounded-2xl group-hover:bg-ps-blue/10 transition-colors shrink-0">
-                      <Package className="w-6 h-6 md:w-8 md:h-8 text-zinc-400 group-hover:text-ps-blue transition-colors" />
+                <div key={path} className="group flex flex-col p-4 md:p-6 glass-card rounded-ps-2xl border-white/10 hover:border-ps-blue/30 gap-3 md:gap-4 relative overflow-hidden">
+                  <div className="flex flex-row items-center justify-between w-full gap-4">
+                    <div className="flex items-center space-x-4 md:space-x-6 min-w-0 flex-1">
+                      <div className="p-3 md:p-4 bg-white/5 rounded-2xl group-hover:bg-ps-blue/10 transition-colors shrink-0">
+                        <Package className="w-6 h-6 md:w-8 md:h-8 text-zinc-400 group-hover:text-ps-blue transition-colors" />
+                      </div>
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <PayloadName path={fileName} className="text-xl md:text-2xl text-white" stacked />
+                        {sourceBadge && (
+                          <div className="flex items-center gap-1 text-zinc-500 text-[11px] select-none font-medium">
+                            <Globe className="w-3.5 h-3.5" />
+                            <span>{sourceBadge}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <PayloadName path={fileName} className="text-xl md:text-2xl text-white" stacked />
-                  {/* Source badge — floats in bottom-right, doesn't expand the row */}
-                  {sourceBadge && (
-                    <div className="absolute bottom-2 right-3 flex items-center gap-1 z-10 pointer-events-none">
-                      <Globe className="w-3 h-3 text-zinc-500 shrink-0" />
-                      <span className="text-[11px] text-zinc-400 font-medium truncate max-w-[160px] select-none">
-                        {sourceBadge}
-                      </span>
-                    </div>
-                  )}
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3 md:space-x-4 ml-auto md:ml-0">
-                    {remoteMatch?.isUpdate && (
+                    <div className="flex items-center shrink-0">
                       <button
-                        onClick={() => onInstall(remoteMatch, remoteMatch.source_id, legacyRepoUrl)}
-                        className="flex items-center space-x-2 md:space-x-3 px-4 md:px-6 py-2 md:py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs md:text-sm transition-all"
+                        onClick={() => onDelete(fileName)}
+                        className="p-3 md:p-4 rounded-xl bg-red-950/20 text-red-500 border border-red-500/10 hover:bg-red-500 hover:text-white transition-all"
+                        title="Remove Payload"
                       >
-                        <RefreshCw className="w-4 h-4 md:w-5 md:h-5" />
-                        <span>Update</span>
+                        <Trash2 className="w-5 h-5 md:w-6 md:h-6" />
                       </button>
-                    )}
-                    <button
-                      onClick={() => onDelete(fileName)}
-                      className="p-3 md:p-4 rounded-xl bg-red-950/20 text-red-500 border border-red-500/10 hover:bg-red-500 hover:text-white transition-all"
-                      title="Remove Payload"
-                    >
-                      <Trash2 className="w-5 h-5 md:w-6 md:h-6" />
-                    </button>
+                    </div>
                   </div>
+                  {remoteMatch?.isUpdate && (
+                    <button
+                      onClick={() => onInstall(remoteMatch, remoteMatch.source_id, legacyRepoUrl)}
+                      className="w-full flex items-center justify-center space-x-2 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs md:text-sm transition-all"
+                    >
+                      <RefreshCw className="w-4 h-4 md:w-5 md:h-5" />
+                      <span>Update{remoteVersion ? ` (to v${remoteVersion.replace(/^v/i, '')})` : ''}</span>
+                    </button>
+                  )}
                 </div>
               )
             })
@@ -363,7 +361,7 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
           </span>
         </div>
 
-        <div className={cn("grid gap-4", isPS5 ? "grid-cols-2" : "grid-cols-1 md:grid-cols-2")}>
+        <div className={cn("grid gap-4", isPS5 ? "grid-cols-2" : "grid-cols-1 lg:grid-cols-2")}>
           {payloads.filter(p => p.includes('/mnt/usb')).length === 0 ? (
             <div className="col-span-full py-20 border-2 border-dashed border-white/5 rounded-ps-3xl flex flex-col items-center justify-center space-y-6 bg-white/[0.01]">
               <div className="relative">
@@ -385,13 +383,9 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
               </div>
             </div>
           ) : (
-            payloads.filter(p => p.includes('/mnt/usb')).map((path, i) => {
-              const fileName = path.split('/').pop()
+            payloads.filter(p => p.includes('/mnt/usb')).map((path) => {
               return (
-                <div key={path} className={cn(
-                  "group flex justify-between p-4 md:p-6 glass-card rounded-ps-2xl border-white/10 hover:border-ps-blue/30 gap-4",
-                  isPS5 ? "flex-row items-center" : "flex-col md:flex-row md:items-center"
-                )}>
+                <div key={path} className="group flex flex-row items-center justify-between p-4 md:p-6 glass-card rounded-ps-2xl border-white/10 hover:border-ps-blue/30 gap-4">
                   <div className="flex items-center space-x-4 md:space-x-6 min-w-0">
                     <div className="p-3 md:p-4 bg-white/5 rounded-2xl group-hover:bg-ps-blue/10 transition-colors shrink-0">
                       <Usb className="w-6 h-6 md:w-8 md:h-8 text-zinc-400 group-hover:text-ps-blue transition-colors" />
@@ -401,7 +395,7 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
                       <p className="text-[10px] text-zinc-600 font-medium font-mono uppercase tracking-tighter opacity-60 truncate">{path}</p>
                     </div>
                   </div>
-                  <div className="flex items-center ml-auto md:ml-0">
+                  <div className="flex items-center shrink-0">
                     <button
                       onClick={() => onImportFromUsb(path)}
                       className="flex items-center space-x-2 md:space-x-3 px-4 md:px-6 py-3 md:py-4 bg-white/5 hover:bg-ps-blue text-white rounded-xl font-bold text-xs md:text-sm transition-all border border-white/10 hover:border-ps-blue group/btn"
