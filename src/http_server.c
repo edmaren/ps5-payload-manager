@@ -105,6 +105,27 @@ struct UploadStatus {
     char repo_url[512];
 };
 
+/* ── Helper: Noisy routes ──────────────────────────────────── */
+
+/* Filter out endpoints that the frontend polls automatically to reduce log spam */
+static int is_noisy_route(const char *url) {
+    if (strcmp(url, ROUTE_LOG) == 0) return 1;
+    if (strcmp(url, ROUTE_INDEX) == 0) return 1;
+    if (strcmp(url, ROUTE_INDEX_HTML) == 0) return 1;
+    if (strcmp(url, "/favicon.svg") == 0) return 1;
+    if (strcmp(url, "/icon.png") == 0) return 1;
+    if (strcmp(url, ROUTE_CACHE_MANIFEST) == 0) return 1;
+    if (strcmp(url, ROUTE_GETIP) == 0) return 1;
+    if (strcmp(url, ROUTE_AUTOLOAD_STATUS) == 0) return 1;
+    if (strcmp(url, ROUTE_VERSION) == 0) return 1;
+    if (strcmp(url, ROUTE_LIST_PAYLOADS) == 0) return 1;
+    if (strcmp(url, ROUTE_GET_CONFIG) == 0) return 1;
+    if (strcmp(url, ROUTE_REPO_LIST) == 0) return 1;
+    if (strcmp(url, ROUTE_PROCESSES_LIST) == 0) return 1;
+    if (strcmp(url, "/events") == 0) return 1;
+    return 0;
+}
+
 /* ── Main request handler ──────────────────────────────────── */
 
 enum MHD_Result http_on_request(void *cls, struct MHD_Connection *conn,
@@ -456,9 +477,7 @@ enum MHD_Result http_on_request(void *cls, struct MHD_Connection *conn,
     }
 
     /* ── Log significant requests ──────────────────────────── */
-    if (strcmp(url, ROUTE_LOG) != 0 && strcmp(url, ROUTE_INDEX) != 0 &&
-        strcmp(url, ROUTE_INDEX_HTML) != 0 && strcmp(url, "/favicon.svg") != 0 &&
-        strcmp(url, "/icon.png") != 0) {
+    if (!is_noisy_route(url)) {
         pldmgr_log("[PLDMGR] Request: %s %s\n", method, url);
     }
 
@@ -604,6 +623,9 @@ enum MHD_Result http_on_request(void *cls, struct MHD_Connection *conn,
         }
         int pid = atoi(pid_str);
         int rc = process_kill(pid);
+        
+        pldmgr_log("[PLDMGR] Process kill requested for PID %d: %s\n", pid, rc == 0 ? "SUCCESS" : "FAILED");
+        
         char json_resp[256];
         snprintf(json_resp, sizeof(json_resp), "{\"ok\":%s,\"message\":\"%s\"}",
                  rc == 0 ? "true" : "false", rc == 0 ? "Killed" : "Failed to kill");
