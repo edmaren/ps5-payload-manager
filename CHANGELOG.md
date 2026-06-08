@@ -1,3 +1,11 @@
+## v0.3.1
+
+- Fixed an issue where installed payloads were not showing on the dashboard for some users ([#28](https://github.com/itsPLK/ps5-payload-manager/issues/28)).
+- Restored the USB scanning limit strictly to the root level.
+- Added options to copy instead of move when importing payloads from USB.
+
+**Full Changelog**: [v0.3.0...v0.3.1](https://github.com/itsPLK/ps5_next_menu/compare/v0.3.0...v0.3.1)
+
 ## v0.3.0
 
 ### 🚀 Features & UX Improvements
