@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { CloudDownload, Upload, Package, Database, RefreshCw, Trash2, Loader2, AlertTriangle, HardDrive, Usb, ChevronDown, Globe } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
-import { cn, isPS5, parsePayloadName } from '../../utils/helpers'
+import { cn, isPS5 } from '../../utils/helpers'
 import PayloadName from '../ui/PayloadName'
 
 const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onImportFromUsb, config, ip, scrollTarget, onClearScrollTarget }) => {
@@ -155,7 +155,9 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
               // Find update in all sources (multi or legacy)
               const allRemote = enrichedSources.flatMap(s => s.payloads)
               const remoteMatch = allRemote.find(rp => rp.filename === fileName || rp.installedFilename === fileName)
-              const remoteVersion = remoteMatch?.filename ? parsePayloadName(remoteMatch.filename).version : null
+              const installedVersion = payloadMeta[fileName]?.version || remoteMatch?.version
+              const installedDisplayName = payloadMeta[fileName]?.display_name || remoteMatch?.name
+              const remoteVersion = remoteMatch?.version || null
               return (
                 <div key={path} className="group flex flex-col justify-center p-4 md:p-6 glass-card rounded-ps-2xl border-white/10 hover:border-ps-blue/30 gap-3 md:gap-4 relative overflow-hidden">
                   <div className="flex flex-row items-center justify-between w-full gap-4">
@@ -164,7 +166,13 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
                         <Package className="w-6 h-6 md:w-8 md:h-8 text-zinc-400 group-hover:text-ps-blue transition-colors" />
                       </div>
                       <div className="min-w-0 flex-1 space-y-1">
-                        <PayloadName path={fileName} className="text-xl md:text-2xl text-white" stacked />
+                        <PayloadName
+                          path={fileName}
+                          version={installedVersion}
+                          displayName={installedDisplayName}
+                          className="text-xl md:text-2xl text-white"
+                          stacked
+                        />
                         {sourceBadge && (
                           <div className="flex items-center gap-1 text-zinc-500 text-[11px] select-none font-medium">
                             <Globe className="w-3.5 h-3.5" />
@@ -306,7 +314,14 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
                             )}
                           >
                             <div className="space-y-2 min-w-0">
-                              <PayloadName path={p.filename} className="text-xl md:text-2xl text-white" stacked lastUpdate={p.last_update} />
+                              <PayloadName
+                                path={p.filename}
+                                version={p.version}
+                                displayName={p.name}
+                                className="text-xl md:text-2xl text-white"
+                                stacked
+                                lastUpdate={p.last_update}
+                              />
                               {p.description && (
                                 <p className="text-sm md:text-base text-zinc-400 font-medium leading-relaxed">{p.description}</p>
                               )}

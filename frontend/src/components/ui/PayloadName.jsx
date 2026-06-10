@@ -2,8 +2,11 @@ import React from 'react'
 import { Zap, Usb } from 'lucide-react'
 import { cn, parsePayloadName } from '../../utils/helpers'
 
-const PayloadName = ({ path, className, versionClassName, stacked = false, hideIcon = false, lastUpdate = null }) => {
-  const { displayName, version, isDelay } = parsePayloadName(path);
+const PayloadName = ({ path, version: versionOverride, displayName: displayNameOverride, className, versionClassName, stacked = false, hideIcon = false, lastUpdate = null }) => {
+  const parsed = parsePayloadName(path);
+  const displayName = displayNameOverride || parsed.displayName;
+  const version = versionOverride || null;
+  const isDelay = parsed.isDelay;
   const isUsb = path?.startsWith('/mnt/usb');
 
   return (

@@ -516,15 +516,21 @@ function App() {
                     <button onClick={() => { setStorageScrollTarget('cloud-repository'); setView('storage'); }} className="px-8 py-3 bg-ps-blue text-white rounded-xl font-bold tracking-tight">Open Repository</button>
                   </div>
                 ) : (
-                  payloads.filter(p => !isSystemPayload(p)).map((p) => (
-                    <PayloadButton
-                      key={p}
-                      path={p}
-                      onClick={() => loadPayload(p)}
-                      isLoading={loading && activeLoadingName === p.split('/').pop().replace(/\.(elf|bin|lua)$/i, '').replace(/_/g, ' ')}
-                      sourceName={config.MULTI_SOURCES_ENABLED ? (payloadMeta[p.split('/').pop()]?.source_name || null) : null}
-                    />
-                  ))
+                  payloads.filter(p => !isSystemPayload(p)).map((p) => {
+                    const fileName = p.split('/').pop()
+                    const meta = payloadMeta[fileName]
+                    return (
+                      <PayloadButton
+                        key={p}
+                        path={p}
+                        onClick={() => loadPayload(p)}
+                        isLoading={loading && activeLoadingName === fileName.replace(/\.(elf|bin|lua)$/i, '').replace(/_/g, ' ')}
+                        sourceName={config.MULTI_SOURCES_ENABLED ? (meta?.source_name || null) : null}
+                        version={meta?.version || null}
+                        displayName={meta?.display_name || null}
+                      />
+                    )
+                  })
                 )}
               </div>
             </div>

@@ -115,8 +115,19 @@ app.get('/list_payloads', (req, res) => {
       "/mnt/usb0/pldmgr/linux_loader.elf"
     ],
     meta: {
-      // payloads with no entry here = local/direct upload (no badge shown)
+      "goldhen_v2.4b17.elf": {
+        display_name: "GoldHEN",
+        version: "v2.4b17",
+        install_source: "repository"
+      },
+      "etaHEN_1.8.elf": {
+        display_name: "etaHEN",
+        version: "v1.8",
+        install_source: "repository"
+      },
       "kstuff.elf": {
+        display_name: "kstuff",
+        version: "v1.03",
         source_name: "Community Payloads",
         install_source: "repository",
         install_source_detail: "https://example.com/community-payloads.json"
