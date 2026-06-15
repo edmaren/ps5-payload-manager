@@ -49,12 +49,25 @@ int download_to_file(const char *url, const char *out_path) {
         curl_easy_setopt(curl, CURLOPT_USERAGENT, "pldmgr/1.0");
 
         /* Securely verify SSL against embedded CA bundle */
+        /* Older curl versions with mbedTLS require the PEM buffer to be NUL-terminated,
+           and the length to include the NUL terminator. */
+        char *ca_bundle = malloc(assets_cacert_pem_len + 1);
+        if (ca_bundle) {
+            memcpy(ca_bundle, assets_cacert_pem, assets_cacert_pem_len);
+            ca_bundle[assets_cacert_pem_len] = '\0';
+        }
+
         struct curl_blob blob;
-        blob.data = (void *)assets_cacert_pem;
-        blob.len = assets_cacert_pem_len;
+        blob.data = ca_bundle ? ca_bundle : (void *)assets_cacert_pem;
+        blob.len = ca_bundle ? (assets_cacert_pem_len + 1) : assets_cacert_pem_len;
         blob.flags = CURL_BLOB_COPY;
 
         curl_easy_setopt(curl, CURLOPT_CAINFO_BLOB, &blob);
+
+        if (ca_bundle) {
+            free(ca_bundle);
+        }
+
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
 
