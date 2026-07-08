@@ -151,7 +151,7 @@ function App() {
   const handleAbort = async () => {
     await fetch('/abort').catch(() => { })
     setAutoloadStatus(prev => prev ? { ...prev, remaining: -1 } : null)
-    addToast("Sequence Aborted", "error")
+    addToast("Sequenz abgebrochen", "error")
   }
 
   const handleFinish = async () => {
@@ -167,9 +167,9 @@ function App() {
     try {
       const safePath = encodeURI(path)
       const res = await fetch(`/loadpayload:${safePath}`)
-      if (!res.ok) throw new Error(`Launch failed (${res.status})`)
-      addToast(`${name} launched`)
-    } catch (e) { addToast(e.message || "Launch failed", "error") }
+      if (!res.ok) throw new Error(`Start fehlgeschlagen (${res.status})`)
+      addToast(`${name} gestartet`)
+    } catch (e) { addToast(e.message || "Start fehlgeschlagen", "error") }
     setTimeout(() => {
       setLoading(false)
       setActiveLoadingName('')
@@ -178,16 +178,16 @@ function App() {
 
   const handleDelete = (fileName) => {
     showConfirm(
-      "Delete Payload",
-      `Are you sure you want to remove ${fileName}?`,
+      "Payload löschen",
+      `${fileName} wirklich entfernen?`,
       async () => {
         const res = await fetch(`/manage:delete?filename=${encodeURIComponent(fileName)}`)
         if (!res.ok) {
-          addToast(`Delete failed (${res.status})`, 'error')
+          addToast(`Löschen fehlgeschlagen (${res.status})`, 'error')
           return
         }
         refreshPayloads()
-        addToast(`${fileName} removed`)
+        addToast(`${fileName} entfernt`)
       }
     )
   }
@@ -204,10 +204,10 @@ function App() {
       if (data.file_exists || data.folder_exists) {
         setConfirmModal({
           show: true,
-          title: "Overwrite Payload",
+          title: "Payload überschreiben",
           message: data.file_exists
-            ? `The file ${file.name} already exists. Overwrite it?`
-            : `A different version of this payload exists in the "${data.folder_name}" folder. Overwrite it?`,
+            ? `Die Datei ${file.name} existiert bereits. Soll sie überschrieben werden?`
+            : `Im Ordner "${data.folder_name}" existiert bereits eine andere Version dieses Payloads. Soll sie überschrieben werden?`,
           onConfirm: () => performUpload(file)
         })
       } else {
@@ -227,11 +227,11 @@ function App() {
         headers: { 'Content-Type': 'application/octet-stream' },
         body: file
       })
-      if (!res.ok) throw new Error(`Upload failed (${res.status})`)
+      if (!res.ok) throw new Error(`Upload fehlgeschlagen (${res.status})`)
       setDownloadModal(prev => ({ ...prev, progress: 100 }))
-      addToast(`${file.name} uploaded`)
+      addToast(`${file.name} hochgeladen`)
       refreshPayloads()
-    } catch (e) { addToast(e.message || "Upload failed", "error") }
+    } catch (e) { addToast(e.message || "Upload fehlgeschlagen", "error") }
     setTimeout(() => setDownloadModal({ show: false }), 800)
   }
 
@@ -239,8 +239,8 @@ function App() {
     if (p.isUpdate || p.isInstalled) {
       setConfirmModal({
         show: true,
-        title: p.isUpdate ? "Update Payload" : "Reinstall Payload",
-        message: `A version of ${p.name || p.filename} is already installed. Do you want to replace it with the repository version?`,
+        title: p.isUpdate ? "Payload aktualisieren" : "Payload neu installieren",
+        message: `Eine Version von ${p.name || p.filename} ist bereits installiert. Soll sie durch die Version aus dem Repository ersetzt werden?`,
         onConfirm: () => performInstall(p, sourceId, repoUrl)
       })
     } else {
@@ -262,10 +262,10 @@ function App() {
       const data = await res.json().catch(() => null)
       if (res.ok && data?.ok) {
         setDownloadModal(prev => ({ ...prev, progress: 100 }))
-        addToast(`${p.filename} installed`)
+        addToast(`${p.filename} installiert`)
         refreshPayloads()
-      } else throw new Error(data?.message || 'Install failed')
-    } catch (e) { addToast(e.message || 'Installation failed', 'error') }
+      } else throw new Error(data?.message || 'Installation fehlgeschlagen')
+    } catch (e) { addToast(e.message || 'Installation fehlgeschlagen', 'error') }
     setTimeout(() => setDownloadModal({ show: false }), 800)
   }
 
@@ -285,7 +285,7 @@ function App() {
       refreshConfig()
       return true
     } else {
-      addToast("Save failed", "error")
+      addToast("Speichern fehlgeschlagen", "error")
       return false
     }
   }
@@ -361,8 +361,8 @@ function App() {
       <div className="min-h-screen ps5-bg text-zinc-100 font-ps5 flex flex-col items-center justify-center p-4 text-center">
         <div className="max-w-lg p-12 bg-black/40 rounded-3xl border border-white/5">
           <div className="text-7xl font-light text-zinc-400 mb-12 font-mono">:(</div>
-          <h1 className="text-2xl font-bold mb-4 text-zinc-300">Payload Manager is not running...</h1>
-          <p className="text-lg text-zinc-400 leading-relaxed">Please ensure you have loaded <strong>pldmgr.elf</strong> on your PS5 before launching this application.</p>
+          <h1 className="text-2xl font-bold mb-4 text-zinc-300">Payload Manager läuft nicht...</h1>
+            <p className="text-lg text-zinc-400 leading-relaxed">Vor dem Öffnen dieser Anwendung muss <strong>pldmgr.elf</strong> auf der PS5 geladen sein.</p>
         </div>
       </div>
     )
@@ -392,7 +392,7 @@ function App() {
       </div>
 
       {/* Modals */}
-      <Modal show={downloadModal.show} title="Installing Payload" onClose={() => { }}>
+      <Modal show={downloadModal.show} title="Payload wird installiert" onClose={() => { }}>
         <div className="space-y-6">
           <div className="flex justify-between items-end">
             <span className="text-ps-blue font-black uppercase italic tracking-tighter text-2xl">{downloadModal.name}</span>
@@ -410,8 +410,8 @@ function App() {
         onClose={() => setConfirmModal({ show: false })}
         footer={
           <>
-            <button onClick={() => setConfirmModal({ show: false })} className="flex-1 px-8 py-5 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-bold transition-all uppercase tracking-tight">Cancel</button>
-            <button onClick={confirmModal.onConfirm} className="flex-1 px-8 py-5 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-bold transition-all uppercase tracking-tight">Confirm</button>
+            <button onClick={() => setConfirmModal({ show: false })} className="flex-1 px-8 py-5 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-bold transition-all uppercase tracking-tight">Abbrechen</button>
+            <button onClick={confirmModal.onConfirm} className="flex-1 px-8 py-5 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-bold transition-all uppercase tracking-tight">Bestätigen</button>
           </>
         }
       >
@@ -440,11 +440,11 @@ function App() {
           </div>
 
           <nav className="flex-1 space-y-2">
-            <NavButton sidebar sidebarExpanded={sidebarExpanded} active={view === 'dashboard'} onClick={() => setView('dashboard')} icon={LayoutDashboard} label="Dashboard" />
-            <NavButton sidebar sidebarExpanded={sidebarExpanded} active={view === 'storage'} onClick={() => setView('storage')} icon={Database} label="Manage Payloads" />
-            <NavButton sidebar sidebarExpanded={sidebarExpanded} active={view === 'autoload'} onClick={() => setView('autoload')} icon={RefreshCw} label="Autoload" />
-            <NavButton sidebar sidebarExpanded={sidebarExpanded} active={view === 'processes'} onClick={() => setView('processes')} icon={Cpu} label="Active Processes" />
-            <NavButton sidebar sidebarExpanded={sidebarExpanded} active={view === 'settings'} onClick={() => setView('settings')} icon={Settings} label="Settings" />
+            <NavButton sidebar sidebarExpanded={sidebarExpanded} active={view === 'dashboard'} onClick={() => setView('dashboard')} icon={LayoutDashboard} label="Start" />
+            <NavButton sidebar sidebarExpanded={sidebarExpanded} active={view === 'storage'} onClick={() => setView('storage')} icon={Database} label="Payloads verwalten" />
+            <NavButton sidebar sidebarExpanded={sidebarExpanded} active={view === 'autoload'} onClick={() => setView('autoload')} icon={RefreshCw} label="Autostart" />
+            <NavButton sidebar sidebarExpanded={sidebarExpanded} active={view === 'processes'} onClick={() => setView('processes')} icon={Cpu} label="Aktive Prozesse" />
+            <NavButton sidebar sidebarExpanded={sidebarExpanded} active={view === 'settings'} onClick={() => setView('settings')} icon={Settings} label="Einstellungen" />
           </nav>
 
           <div className="pt-6 border-t border-white/5">
@@ -454,7 +454,7 @@ function App() {
               active={view === 'donate'}
               onClick={() => setView('donate')}
               icon={Heart}
-              label="Donate"
+              label="Spenden"
               className={view === 'donate' ? "bg-red-600" : "text-red-500 hover:bg-red-600/10"}
             />
           </div>
@@ -466,18 +466,18 @@ function App() {
         "fixed bottom-0 inset-x-0 z-[100] bg-black/80 border-t border-white/5 h-[calc(5rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] flex items-center",
         isPS5 ? "hidden" : "md:hidden"
       )}>
-        <NavButton active={view === 'dashboard'} onClick={() => setView('dashboard')} icon={LayoutDashboard} label="Dashboard" mobileLabel="HOME" />
-        <NavButton showSeparator active={view === 'storage'} onClick={() => setView('storage')} icon={Database} label="Manage Payloads" mobileLabel="MANAGE" />
-        <NavButton showSeparator active={view === 'autoload'} onClick={() => setView('autoload')} icon={RefreshCw} label="Autoload" mobileLabel="AUTO" />
-        <NavButton showSeparator active={view === 'processes'} onClick={() => setView('processes')} icon={Cpu} label="Active Processes" mobileLabel="PROCESSES" />
-        <NavButton showSeparator active={view === 'settings'} onClick={() => setView('settings')} icon={Settings} label="Settings" mobileLabel="SETTINGS" />
+        <NavButton active={view === 'dashboard'} onClick={() => setView('dashboard')} icon={LayoutDashboard} label="Start" mobileLabel="START" />
+        <NavButton showSeparator active={view === 'storage'} onClick={() => setView('storage')} icon={Database} label="Payloads verwalten" mobileLabel="VERW." />
+        <NavButton showSeparator active={view === 'autoload'} onClick={() => setView('autoload')} icon={RefreshCw} label="Autostart" mobileLabel="AUTO" />
+        <NavButton showSeparator active={view === 'processes'} onClick={() => setView('processes')} icon={Cpu} label="Aktive Prozesse" mobileLabel="PROZ." />
+        <NavButton showSeparator active={view === 'settings'} onClick={() => setView('settings')} icon={Settings} label="Einstellungen" mobileLabel="EINST." />
         <NavButton
           showSeparator
           active={view === 'donate'}
           onClick={() => setView('donate')}
           icon={Heart}
-          label="Donate"
-          mobileLabel="DONATE"
+          label="Spenden"
+          mobileLabel="SPENDE"
         />
       </nav>
 
@@ -493,7 +493,7 @@ function App() {
           {view === 'dashboard' && (
             <div className="space-y-8 md:space-y-12">
               <h2 className="text-4xl font-extrabold text-white tracking-tight">
-                Launch <span className="text-ps-blue">Payload</span>
+                <span className="text-ps-blue">Payload</span> starten
               </h2>
               <div className={cn(
                 "grid gap-4 md:gap-6",
@@ -510,10 +510,10 @@ function App() {
                   <div className="col-span-full py-20 border-2 border-dashed border-white/5 rounded-ps-xl flex flex-col items-center justify-center space-y-6 bg-white/[0.01]">
                     <Package className="w-16 h-16 text-white/10" />
                     <div className="text-center">
-                      <p className="text-white font-extrabold tracking-tight text-2xl">Empty Library</p>
-                      <p className="text-zinc-500 font-medium">Add payloads from the Cloud Hub to get started.</p>
+                      <p className="text-white font-extrabold tracking-tight text-2xl">Bibliothek leer</p>
+                      <p className="text-zinc-500 font-medium">Zum Start können Payloads aus dem Online-Repository installiert werden.</p>
                     </div>
-                    <button onClick={() => { setStorageScrollTarget('cloud-repository'); setView('storage'); }} className="px-8 py-3 bg-ps-blue text-white rounded-xl font-bold tracking-tight">Open Repository</button>
+                    <button onClick={() => { setStorageScrollTarget('cloud-repository'); setView('storage'); }} className="px-8 py-3 bg-ps-blue text-white rounded-xl font-bold tracking-tight">Repository öffnen</button>
                   </div>
                 ) : (
                   payloads.filter(p => !isSystemPayload(p)).map((p) => (
@@ -609,8 +609,8 @@ function App() {
         <div className="fixed inset-0 bg-ps-black/95 z-[9999] flex flex-col items-center justify-center space-y-12">
           <div className="ps5-robust-spinner" />
           <div className="text-center">
-            <h4 className="text-4xl font-extrabold text-white tracking-tight mb-4 uppercase italic">{activeLoadingName || "Engaging Core"}</h4>
-            <p className="label-caps !text-ps-blue tracking-[0.3em] font-black">LAUNCHING PAYLOAD...</p>
+            <h4 className="text-4xl font-extrabold text-white tracking-tight mb-4 uppercase italic">{activeLoadingName || "Initialisierung"}</h4>
+            <p className="label-caps !text-ps-blue tracking-[0.3em] font-black">PAYLOAD WIRD GESTARTET...</p>
           </div>
         </div>
       )}
@@ -619,7 +619,7 @@ function App() {
           <div className="p-6 md:p-8 border-b border-white/10 flex items-center justify-between bg-[#08080a]/95 backdrop-blur-xl sticky top-0 z-10">
             <div className="flex items-center space-x-4">
               <Terminal className="w-8 h-8 text-ps-blue" />
-              <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter">Logs</h3>
+              <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter">Protokolle</h3>
             </div>
             <button
               onClick={() => setShowLogs(false)}

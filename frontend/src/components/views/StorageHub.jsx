@@ -96,7 +96,7 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
     } else if (!multiSources && repoData?.payloads) {
       return [{
         id: 'legacy-repo',
-        name: 'Default Repository',
+        name: 'Standard-Repository',
         url: repoData.repo_url || '',
         last_update: repoData.last_update || 0,
         payloads: enrichPayloads(repoData.payloads)
@@ -118,13 +118,13 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
     <div className="space-y-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
         <h2 className="text-4xl font-extrabold text-white tracking-tight">
-          Payload <span className="text-ps-blue">Management</span>
+          Payload-<span className="text-ps-blue">Verwaltung</span>
         </h2>
 
         {!isPS5 && (
           <label className="inline-flex items-center space-x-4 px-10 py-5 bg-ps-blue hover:bg-ps-blue/80 text-white rounded-[1.25rem] font-bold tracking-tight text-xl cursor-pointer transition-all shrink-0 transform active:scale-95">
             <Upload className="w-7 h-7" />
-            <span>Upload ELF Payload</span>
+            <span>ELF-Payload hochladen</span>
             <input type="file" className="hidden" onChange={onUpload} accept=".elf,.bin,.lua" />
           </label>
         )}
@@ -135,10 +135,10 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
         <div className="flex items-center justify-between px-2">
           <h3 className="label-caps !text-white flex items-center space-x-4 text-lg">
             <Database className="w-6 h-6 text-ps-blue" />
-            <span>Installed Payloads</span>
+            <span>Installierte Payloads</span>
           </h3>
           <span className="bg-white/5 px-4 py-1 rounded-full text-zinc-500 font-bold text-xs">
-            {internalPayloads.length} Files
+            {internalPayloads.length} Dateien
           </span>
         </div>
 
@@ -146,7 +146,7 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
           {internalPayloads.length === 0 ? (
             <div className="col-span-full py-20 border-2 border-dashed border-white/5 rounded-ps-3xl flex flex-col items-center justify-center space-y-4 bg-white/[0.01]">
               <Package className="w-16 h-16 text-white/5" />
-              <p className="text-zinc-500 font-bold uppercase tracking-widest text-sm italic">Library Empty</p>
+              <p className="text-zinc-500 font-bold uppercase tracking-widest text-sm italic">Bibliothek leer</p>
             </div>
           ) : (
             internalPayloads.map((path) => {
@@ -177,7 +177,7 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
                       <button
                         onClick={() => onDelete(fileName)}
                         className="p-3 md:p-4 rounded-xl bg-red-950/20 text-red-500 border border-red-500/10 hover:bg-red-500 hover:text-white transition-all"
-                        title="Remove Payload"
+                        title="Payload entfernen"
                       >
                         <Trash2 className="w-5 h-5 md:w-6 md:h-6" />
                       </button>
@@ -189,7 +189,7 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
                       className="w-full flex items-center justify-center space-x-2 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs md:text-sm transition-all"
                     >
                       <RefreshCw className="w-4 h-4 md:w-5 md:h-5" />
-                      <span>Update{remoteVersion ? ` (to v${remoteVersion.replace(/^v/i, '')})` : ''}</span>
+                      <span>Aktualisieren{remoteVersion ? ` (auf v${remoteVersion.replace(/^v/i, '')})` : ''}</span>
                     </button>
                   )}
                 </div>
@@ -204,7 +204,7 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
         <div className="flex items-center justify-between px-2">
           <h3 className="label-caps !text-white flex items-center space-x-4 text-lg" >
             <CloudDownload className="w-6 h-6 text-ps-blue" />
-            <span>Cloud Repository</span>
+            <span>Online-Repository</span>
           </h3>
           <button onClick={() => fetchRemote(true)} className="p-2 hover:bg-white/5 rounded-lg transition-colors text-zinc-500 hover:text-ps-blue">
             <RefreshCw className={cn("w-5 h-5", loading && "animate-spin")} />
@@ -214,16 +214,16 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
         {loading && !repoData ? (
           <div className="py-24 glass-panel rounded-ps-3xl border-white/5 flex flex-col items-center justify-center space-y-6">
             <Loader2 className="w-16 h-16 text-ps-blue animate-spin" />
-            <p className="label-caps">Syncing with Repository...</p>
+            <p className="label-caps">Repository wird aktualisiert...</p>
           </div>
         ) : error ? (
           <div className="py-20 glass-card rounded-ps-3xl border-red-500/20 flex flex-col items-center justify-center space-y-6 bg-red-950/5">
             <AlertTriangle className="w-16 h-16 text-red-500 opacity-50" />
             <div className="text-center">
-              <p className="text-xl font-bold text-white uppercase tracking-tight">Repository Unavailable</p>
-              <p className="text-zinc-500 mt-1">Check your internet connection and try again.</p>
+              <p className="text-xl font-bold text-white uppercase tracking-tight">Repository nicht verfügbar</p>
+              <p className="text-zinc-500 mt-1">Internetverbindung prüfen und erneut versuchen.</p>
             </div>
-            <button onClick={() => fetchRemote(true)} className="px-8 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-xl font-bold uppercase text-xs transition-all">Retry Connection</button>
+            <button onClick={() => fetchRemote(true)} className="px-8 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-xl font-bold uppercase text-xs transition-all">Erneut versuchen</button>
           </div>
         ) : enrichedSources.length > 0 ? (
           /* ===== REPOSITORY CATALOGS ===== */
@@ -240,7 +240,7 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
                   {/* Last Sync for single-source mode */}
                   {!multiSources && src.last_update > 0 && (
                     <p className="px-2 text-xs uppercase tracking-widest text-zinc-500">
-                      Last Sync: {new Date(src.last_update * 1000).toLocaleString()}
+                      Zuletzt synchronisiert: {new Date(src.last_update * 1000).toLocaleString()}
                     </p>
                   )}
 
@@ -259,19 +259,19 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
                         {src.error && (
                           <p className="text-xs text-red-400 flex items-center space-x-1 mt-0.5">
                             <AlertTriangle className="w-3 h-3" />
-                            <span>Fetch failed</span>
+                            <span>Abruf fehlgeschlagen</span>
                           </p>
                         )}
                         {src.last_update > 0 && (
                           <p className="text-xs text-zinc-500 uppercase tracking-widest mt-1">
-                            Updated {new Date(src.last_update * 1000).toLocaleString()}
+                            Aktualisiert {new Date(src.last_update * 1000).toLocaleString()}
                           </p>
                         )}
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
                       <span className="px-3 py-1 rounded-full bg-white/5 text-zinc-500 text-xs font-bold">
-                        {availablePayloads.length} available
+                        {availablePayloads.length} verfügbar
                       </span>
                       {enrichedSources.length > 1 && (
                         <ChevronDown className={cn("w-5 h-5 text-zinc-500 transition-transform", isExpanded && "rotate-180")} />
@@ -287,11 +287,11 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
                     )}>
                       {src.payloads.length === 0 ? (
                         <div className="py-12 flex flex-col items-center justify-center space-y-3 text-zinc-600">
-                          <p className="text-sm font-bold uppercase tracking-widest italic">Source is empty</p>
+                          <p className="text-sm font-bold uppercase tracking-widest italic">Quelle ist leer</p>
                         </div>
                       ) : availablePayloads.length === 0 ? (
                         <div className="py-12 flex flex-col items-center justify-center space-y-3 text-zinc-600">
-                          <p className="text-sm font-bold uppercase tracking-widest italic">All payloads installed</p>
+                          <p className="text-sm font-bold uppercase tracking-widest italic">Alle Payloads installiert</p>
                         </div>
                       ) : (
                         availablePayloads.map(p => (
@@ -322,7 +322,7 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
                               )}
                             >
                               <CloudDownload className="w-5 h-5 md:w-6 md:h-6" />
-                              <span>{p.isUpdate ? "Update" : "Install"}</span>
+                              <span>{p.isUpdate ? "Aktualisieren" : "Installieren"}</span>
                             </button>
                           </div>
                         ))
@@ -336,7 +336,7 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
         ) : (
           <div className="py-20 border-2 border-dashed border-white/5 rounded-ps-3xl flex flex-col items-center justify-center space-y-4 bg-white/[0.01]">
             <CloudDownload className="w-16 h-16 text-white/5" />
-            <p className="text-zinc-500 font-bold uppercase tracking-widest text-sm italic">Repository is empty</p>
+            <p className="text-zinc-500 font-bold uppercase tracking-widest text-sm italic">Repository ist leer</p>
           </div>
         )}
       </section>
@@ -346,10 +346,10 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
         <div className="flex items-center justify-between px-2">
           <h3 className="label-caps !text-ps-blue flex items-center space-x-4 text-lg">
             <HardDrive className="w-6 h-6" />
-            <span>USB Storage</span>
+            <span>USB-Speicher</span>
           </h3>
           <span className="bg-ps-blue/5 px-4 py-1 rounded-full text-ps-blue font-bold text-xs border border-ps-blue/20">
-            {payloads.filter(p => p.includes('/mnt/usb')).length} Files
+            {payloads.filter(p => p.includes('/mnt/usb')).length} Dateien
           </span>
         </div>
 
@@ -365,11 +365,11 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
                 )}
               </div>
               <div className="text-center space-y-2">
-                <p className="text-zinc-500 font-bold uppercase tracking-widest text-sm italic">No USB Payloads Found</p>
+                <p className="text-zinc-500 font-bold uppercase tracking-widest text-sm italic">Keine USB-Payloads gefunden</p>
                 {!config.SCAN_USB_PAYLOADS && (
                   <p className="text-xs text-zinc-600 max-w-xs mx-auto leading-relaxed">
-                    Extended USB scanning is currently disabled. <br /> 
-                    Enable <strong>"Scan USB Payloads"</strong> in settings to search for payloads on connected drives.
+                    Die erweiterte USB-Suche ist derzeit deaktiviert. <br /> 
+                    Zum Durchsuchen angeschlossener Laufwerke muss <strong>"USB-Payloads scannen"</strong> in den Einstellungen aktiviert werden.
                   </p>
                 )}
               </div>
@@ -393,7 +393,7 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
                       className="flex items-center space-x-2 md:space-x-3 px-4 md:px-6 py-3 md:py-4 bg-white/5 hover:bg-ps-blue text-white rounded-xl font-bold text-xs md:text-sm transition-all border border-white/10 hover:border-ps-blue group/btn"
                     >
                       <Database className="w-4 h-4 md:w-5 md:h-5 text-ps-blue group-hover/btn:text-white transition-colors" />
-                      <span>Move to Internal</span>
+                      <span>In den internen Speicher</span>
                     </button>
                   </div>
                 </div>
@@ -418,10 +418,10 @@ const StorageHub = ({ payloads, payloadMeta, onInstall, onDelete, onUpload, onIm
           <div className="flex-1 space-y-3 md:space-y-4 text-center md:text-left">
             <h4 className="label-caps !text-white !opacity-100 text-xl md:text-2xl tracking-widest flex items-center justify-center md:justify-start space-x-3 md:space-x-4">
               <div className="w-1.5 h-6 md:w-2 md:h-8 bg-ps-blue rounded-full" />
-              <span>Remote Management</span>
+              <span>Fernverwaltung</span>
             </h4>
             <p className="text-lg md:text-xl text-zinc-400 leading-relaxed italic font-medium max-w-3xl">
-              Access this dashboard from your computer or phone to manage and upload payloads directly from your local network.
+              Dieses Dashboard kann auf Computer oder Smartphone geöffnet werden, um Payloads direkt im lokalen Netzwerk zu verwalten und hochzuladen.
             </p>
           </div>
         </div>

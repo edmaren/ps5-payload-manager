@@ -52,26 +52,26 @@ const ActiveProcessesView = ({ ip, addToast, showConfirm }) => {
 
   const handleKill = (p) => {
     if (p.name === 'pldmgr.elf' || p.name === 'elfldr.elf') {
-      addToast(`Cannot kill ${p.name}`, "error")
+      addToast(`${p.name} kann nicht beendet werden`, "error")
       return
     }
 
     showConfirm(
-      "Kill Process",
-      `Are you sure you want to kill ${p.name} (PID: ${p.pid})?`,
+      "Prozess beenden",
+      `${p.name} (PID: ${p.pid}) wirklich beenden?`,
       async () => {
         try {
           const res = await fetch(`/process_kill?pid=${p.pid}`)
           if (res.ok) {
-            addToast(`Successfully killed ${p.name}`)
+            addToast(`${p.name} wurde beendet`)
             setTimeout(() => {
               fetchProcesses(true)
             }, 500)
           } else {
-            addToast(`Failed to kill ${p.name}`, "error")
+            addToast(`Beenden von ${p.name} fehlgeschlagen`, "error")
           }
         } catch (e) {
-          addToast(`Error killing ${p.name}`, "error")
+          addToast(`Fehler beim Beenden von ${p.name}`, "error")
         }
       }
     )
@@ -81,11 +81,11 @@ const ActiveProcessesView = ({ ip, addToast, showConfirm }) => {
     <div className="space-y-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
         <h2 className="text-4xl font-extrabold text-white tracking-tight">
-          Active <span className="text-ps-blue">Processes</span>
+          Aktive <span className="text-ps-blue">Prozesse</span>
         </h2>
         <div className="flex items-center space-x-4">
           <label className="flex items-center space-x-3 cursor-pointer group">
-            <span className="text-zinc-400 font-bold tracking-tight group-hover:text-white transition-colors">Show All System Processes</span>
+            <span className="text-zinc-400 font-bold tracking-tight group-hover:text-white transition-colors">Alle Systemprozesse anzeigen</span>
             <div className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-ps-blue focus:ring-offset-2 focus:ring-offset-black bg-white/10 group-hover:bg-white/20">
               <input
                 type="checkbox"
@@ -110,7 +110,7 @@ const ActiveProcessesView = ({ ip, addToast, showConfirm }) => {
           <Search className="w-5 h-5 text-zinc-500 mr-3" />
           <input
             type="text"
-            placeholder="Search processes by name..."
+            placeholder="Prozesse nach Namen suchen..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="bg-transparent border-none outline-none text-white w-full font-medium placeholder:text-zinc-600"
@@ -120,20 +120,20 @@ const ActiveProcessesView = ({ ip, addToast, showConfirm }) => {
         {loading && processes.length === 0 ? (
           <div className="py-24 glass-panel rounded-ps-3xl border-white/5 flex flex-col items-center justify-center space-y-6">
             <Loader2 className="w-16 h-16 text-ps-blue animate-spin" />
-            <p className="label-caps">Fetching process list...</p>
+            <p className="label-caps">Prozessliste wird geladen...</p>
           </div>
         ) : error ? (
           <div className="py-20 glass-card rounded-ps-3xl border-red-500/20 flex flex-col items-center justify-center space-y-6 bg-red-950/5">
             <AlertCircle className="w-16 h-16 text-red-500 opacity-50" />
             <div className="text-center">
-              <p className="text-xl font-bold text-white uppercase tracking-tight">Failed to load processes</p>
+              <p className="text-xl font-bold text-white uppercase tracking-tight">Prozesse konnten nicht geladen werden</p>
             </div>
-            <button onClick={() => fetchProcesses()} className="px-8 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-xl font-bold uppercase text-xs transition-all">Retry</button>
+            <button onClick={() => fetchProcesses()} className="px-8 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-xl font-bold uppercase text-xs transition-all">Erneut versuchen</button>
           </div>
         ) : filteredProcesses.length === 0 ? (
           <div className="py-20 border-2 border-dashed border-white/5 rounded-ps-3xl flex flex-col items-center justify-center space-y-4 bg-white/[0.01]">
             <Activity className="w-16 h-16 text-white/5" />
-            <p className="text-zinc-500 font-bold uppercase tracking-widest text-sm italic">No processes found</p>
+            <p className="text-zinc-500 font-bold uppercase tracking-widest text-sm italic">Keine Prozesse gefunden</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4">
@@ -160,16 +160,16 @@ const ActiveProcessesView = ({ ip, addToast, showConfirm }) => {
                   <button
                     onClick={() => handleKill(p)}
                     className="p-3 md:px-6 md:py-3 rounded-xl bg-red-950/20 text-red-500 border border-red-500/10 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center space-x-2 shrink-0 group"
-                    title="Kill Process"
+                    title="Prozess beenden"
                   >
                     <XCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                    <span className="hidden md:inline font-bold uppercase tracking-tight text-sm">Kill</span>
+                    <span className="hidden md:inline font-bold uppercase tracking-tight text-sm">Beenden</span>
                   </button>
                 )}
                 {(p.name === 'pldmgr.elf' || p.name === 'elfldr.elf') && (
-                  <div className="p-3 md:px-6 md:py-3 rounded-xl bg-white/5 text-zinc-500 border border-white/5 flex items-center justify-center space-x-2 shrink-0 opacity-50 cursor-not-allowed" title="Cannot kill critical process">
+                  <div className="p-3 md:px-6 md:py-3 rounded-xl bg-white/5 text-zinc-500 border border-white/5 flex items-center justify-center space-x-2 shrink-0 opacity-50 cursor-not-allowed" title="Kritischer Prozess kann nicht beendet werden">
                     <XCircle className="w-5 h-5" />
-                    <span className="hidden md:inline font-bold uppercase tracking-tight text-sm">Kill</span>
+                    <span className="hidden md:inline font-bold uppercase tracking-tight text-sm">Beenden</span>
                   </div>
                 )}
               </div>
@@ -180,7 +180,7 @@ const ActiveProcessesView = ({ ip, addToast, showConfirm }) => {
         <div className="bg-ps-blue/10 border border-ps-blue/20 rounded-2xl p-4 flex items-start space-x-3 mt-8">
           <Info className="w-5 h-5 text-ps-blue shrink-0 mt-0.5" />
           <p className="text-sm text-ps-blue/90 font-medium leading-relaxed">
-            <strong>Note:</strong> Some payloads that inject threads into system processes (like <code className="bg-black/20 px-1 rounded font-mono text-xs">SceShellCore</code>) will persist inside those processes even after their main process is killed.
+            <strong>Hinweis:</strong> Einige Payloads, die Threads in Systemprozesse einschleusen (wie <code className="bg-black/20 px-1 rounded font-mono text-xs">SceShellCore</code>), bleiben in diesen Prozessen bestehen, selbst wenn ihr Hauptprozess beendet wurde.
           </p>
         </div>
       </section>

@@ -51,7 +51,7 @@ const LogViewer = ({ logs }) => {
           className="absolute bottom-10 inset-x-0 mx-auto w-max px-8 py-4 bg-ps-blue text-white rounded-full font-black uppercase tracking-[0.2em] text-[11px] z-50 flex items-center space-x-3 border border-white/20 shadow-[0_0_50px_rgba(0,149,255,0.4)] animate-bounce hover:scale-105 active:scale-95 transition-transform"
         >
           <ChevronDown className="w-5 h-5" />
-          <span>New Activity Below</span>
+          <span>Neue Einträge unten</span>
         </button>
       )}
     </div>
