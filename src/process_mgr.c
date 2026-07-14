@@ -91,8 +91,6 @@ size_t process_list_json(char *buf, size_t max_size) {
 int process_kill(int pid) {
     if (pid <= 0) return -1; /* Prevent killing kernel or init */
 
-    /* Prevent killing our own process */
-    if (pid == getpid()) return -1;
 
     if (kill(pid, SIGKILL) == 0) {
         return 0;

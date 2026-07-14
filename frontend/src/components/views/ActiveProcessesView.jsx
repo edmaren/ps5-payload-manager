@@ -51,7 +51,7 @@ const ActiveProcessesView = ({ ip, addToast, showConfirm }) => {
   }, [processes, showAll, search])
 
   const handleKill = (p) => {
-    if (p.name === 'pldmgr.elf' || p.name === 'elfldr.elf') {
+    if (p.name === 'elfldr.elf') {
       addToast(`Cannot kill ${p.name}`, "error")
       return
     }
@@ -156,7 +156,7 @@ const ActiveProcessesView = ({ ip, addToast, showConfirm }) => {
                     </div>
                   </div>
                 </div>
-                {p.is_daemon && p.name !== 'pldmgr.elf' && p.name !== 'elfldr.elf' && (
+                {p.is_daemon && p.name !== 'elfldr.elf' && (
                   <button
                     onClick={() => handleKill(p)}
                     className="p-3 md:px-6 md:py-3 rounded-xl bg-red-950/20 text-red-500 border border-red-500/10 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center space-x-2 shrink-0 group"
@@ -166,7 +166,7 @@ const ActiveProcessesView = ({ ip, addToast, showConfirm }) => {
                     <span className="hidden md:inline font-bold uppercase tracking-tight text-sm">Kill</span>
                   </button>
                 )}
-                {(p.name === 'pldmgr.elf' || p.name === 'elfldr.elf') && (
+                {(p.name === 'elfldr.elf') && (
                   <div className="p-3 md:px-6 md:py-3 rounded-xl bg-white/5 text-zinc-500 border border-white/5 flex items-center justify-center space-x-2 shrink-0 opacity-50 cursor-not-allowed" title="Cannot kill critical process">
                     <XCircle className="w-5 h-5" />
                     <span className="hidden md:inline font-bold uppercase tracking-tight text-sm">Kill</span>
